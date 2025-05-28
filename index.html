@@ -7,15 +7,21 @@
     <link rel="stylesheet"  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
     <script src="https://unpkg.com/gsap@3/dist/ScrollTrigger.min.js"></script>
+    <!-- THREE.js Core -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/MTLLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+
     <link rel="stylesheet" href="fontmanagement.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="fullscreen" id="drop-in">
-        <div class="line-container" id="lineContainer"></div>
+        <div id="lnc"></div>
         <img src="src/noBslogo.png"/ id="logo">
     </div>
     <section class="horizontal-section fullscreen">
+      <div class="fullscreen tdModelFlex cnv" id="contHoz"></div>
       <div class="horizontal-wrapper">
         <div class="panel">
           <h1 class="longText">
@@ -33,4 +39,6 @@
 </body>
 <script src="script.js"></script>
 <script src="devlist.js"></script>
+<script src="background.js"></script>
+<script src="tdModelloader.js"></script>
 </html>

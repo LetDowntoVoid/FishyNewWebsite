@@ -1,54 +1,106 @@
 const cardsGrid = document.getElementById('cardsGrid');
 const allSegments = [];
 let profileData = [];
+let isLoading = false;
+let isInitialized = false;
 
-// Load profile data from JSON and then API
+function createPlaceholderProfile(index) {
+    return {
+        name: 'Loading...',
+        description: 'Loading profile information...',
+        image: null,
+        socials: {},
+        isPlaceholder: true,
+        index: index
+    };
+}
+
 async function loadProfileData() {
+    if (isLoading) return;
+    isLoading = true;
+
     try {
-        // First, load the local JSON to get UIDs
+
         const jsonResponse = await fetch('devlist.json');
         const localData = await jsonResponse.json();
-        
-        profileData = [];
-        
-        // For each profile in the JSON, fetch from API using their UID
-        for (const profile of localData) {
-            if (profile.uid) {
-                try {
-                    const apiResponse = await fetch(`https://avatar-cyan.vercel.app/api/${profile.uid}`);
-                    const apiData = await apiResponse.json();
-                    
-                    // Use API data for avatar and Discord info, keep other data from JSON
-                    profileData.push({
-                        name: apiData.display_name || apiData.username || profile.name,
-                        description: profile.description || `Discord User • ${apiData.username}#${apiData.discriminator}`,
-                        image: apiData.avatarUrl || profile.image,
-                        socials: profile.socials || {}
-                    });
-                } catch (apiError) {
-                    console.error(`Error fetching API data for UID ${profile.uid}:`, apiError);
-                    // Use original profile data if API fails
-                    profileData.push(profile);
+
+        profileData = localData.map((profile, index) => createPlaceholderProfile(index));
+
+        if (!isInitialized) {
+            createInitialCards();
+            isInitialized = true;
+        }
+
+        for (let i = 0; i < localData.length; i++) {
+            const profile = localData[i];
+
+            try {
+                let updatedProfile = { ...profile };
+
+                if (profile.uid) {
+                    try {
+                        const apiResponse = await fetch(`https://avatar-cyan.vercel.app/api/${profile.uid}`);
+                        const apiData = await apiResponse.json();
+
+                        updatedProfile = {
+                            name: apiData.display_name || apiData.username || profile.name,
+                            description: profile.description || `Discord User • ${apiData.username}#${apiData.discriminator}`,
+                            image: apiData.avatarUrl || profile.image,
+                            socials: profile.socials || {},
+                            isPlaceholder: false,
+                            index: i
+                        };
+                    } catch (apiError) {
+                        console.error(`Error fetching API data for UID ${profile.uid}:`, apiError);
+
+                        updatedProfile.isPlaceholder = false;
+                    }
+                } else {
+
+                    updatedProfile.isPlaceholder = false;
                 }
-            } else {
-                // Use original profile data if no UID
-                profileData.push(profile);
+
+                profileData[i] = updatedProfile;
+
+                updateProfileCard(i, updatedProfile);
+
+            } catch (error) {
+                console.error(`Error processing profile at index ${i}:`, error);
+
+                profileData[i] = {
+                    name: 'Error Loading',
+                    description: 'Failed to load profile',
+                    image: null,
+                    socials: {},
+                    isPlaceholder: false,
+                    index: i
+                };
+                updateProfileCard(i, profileData[i]);
             }
         }
+
     } catch (error) {
         console.error('Error loading profile data:', error);
-        // Fallback data if JSON fails to load
-        profileData = [
-            { 
-                name: 'Alex Chen', 
-                description: 'UI/UX Designer', 
-                image: 'images/alex.jpg',
-                socials: {
-                    x: 'https://x.com/alexchen',
-                    github: 'https://github.com/alexchen'
+
+        if (!isInitialized) {
+            profileData = [
+                { 
+                    name: 'Alex Chen', 
+                    description: 'UI/UX Designer', 
+                    image: 'images/alex.jpg',
+                    socials: {
+                        x: 'https://x.com/alexchen',
+                        github: 'https://github.com/alexchen'
+                    },
+                    isPlaceholder: false,
+                    index: 0
                 }
-            }
-        ];
+            ];
+            createInitialCards();
+            isInitialized = true;
+        }
+    } finally {
+        isLoading = false;
     }
 }
 
@@ -108,10 +160,10 @@ const socialIcons = {
         <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
     </svg>`
 };
+
 function createCardBorders(container) {
     const segments = [];
-    
-    // Create border lines
+
     const positions = ['top', 'bottom', 'left', 'right'];
     positions.forEach(pos => {
         const line = document.createElement('div');
@@ -119,7 +171,6 @@ function createCardBorders(container) {
         container.appendChild(line);
     });
 
-    // Create corner dots
     const corners = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
     corners.forEach(corner => {
         const dot = document.createElement('div');
@@ -127,7 +178,6 @@ function createCardBorders(container) {
         container.appendChild(dot);
     });
 
-    // Create measurements
     const measurements = [
         { text: Math.floor(Math.random() * 50 + 200), style: { top: '-20px', left: '50%', transform: 'translateX(-50%)' } },
         { text: Math.floor(Math.random() * 30 + 150), style: { bottom: '-20px', left: '50%', transform: 'translateX(-50%)' } },
@@ -143,7 +193,6 @@ function createCardBorders(container) {
         container.appendChild(elem);
     });
 
-    // Create animated segments for each border
     const borderConfigs = [
         { side: 'top', type: 'horizontal', maxWidth: 280 },
         { side: 'bottom', type: 'horizontal', maxWidth: 280 },
@@ -152,27 +201,31 @@ function createCardBorders(container) {
     ];
 
     borderConfigs.forEach(config => {
-        const numSegments = Math.floor(Math.random() * 2) + 1; // 1-2 segments per side
-        
+        const numSegments = Math.floor(Math.random() * 2) + 1; 
+
         for (let i = 0; i < numSegments; i++) {
             const segment = document.createElement('div');
             segment.className = `border-segment ${config.type}`;
-            
-            const hasText = Math.random() > 0.7; // 30% chance for text
-            
+
+            const hasText = Math.random() > 0.7; 
+
             if (config.type === 'horizontal') {
-                const width = Math.random() * 40 + 20; // 20-60px
+                const width = Math.random() * 40 + 20; 
                 segment.style.width = width + 'px';
-                
+
                 if (config.side === 'top') {
                     segment.style.top = '-1px';
                 } else {
                     segment.style.bottom = '-1px';
                 }
-                
+
                 const initialPos = Math.random() * (config.maxWidth - width);
-                gsap.set(segment, { left: initialPos });
-                
+                if (typeof gsap !== 'undefined') {
+                    gsap.set(segment, { left: initialPos });
+                } else {
+                    segment.style.left = initialPos + 'px';
+                }
+
                 segments.push({
                     element: segment,
                     type: 'horizontal',
@@ -181,18 +234,22 @@ function createCardBorders(container) {
                     side: config.side
                 });
             } else {
-                const height = Math.random() * 40 + 20; // 20-60px
+                const height = Math.random() * 40 + 20; 
                 segment.style.height = height + 'px';
-                
+
                 if (config.side === 'left') {
                     segment.style.left = '-1px';
                 } else {
                     segment.style.right = '-1px';
                 }
-                
+
                 const initialPos = Math.random() * (config.maxHeight - height);
-                gsap.set(segment, { top: initialPos });
-                
+                if (typeof gsap !== 'undefined') {
+                    gsap.set(segment, { top: initialPos });
+                } else {
+                    segment.style.top = initialPos + 'px';
+                }
+
                 segments.push({
                     element: segment,
                     type: 'vertical',
@@ -201,7 +258,7 @@ function createCardBorders(container) {
                     side: config.side
                 });
             }
-            
+
             container.appendChild(segment);
         }
     });
@@ -210,34 +267,38 @@ function createCardBorders(container) {
 }
 
 function animateSegments(segments) {
+    if (typeof gsap === 'undefined') {
+        console.warn('GSAP not loaded, skipping animations');
+        return;
+    }
+
     segments.forEach((segment, index) => {
         function createAnimation() {
             const isHorizontal = segment.type === 'horizontal';
             const maxDistance = segment.maxDistance;
-            
-            // Random speed - mostly slow with occasional fast movement
-            let baseDuration = Math.random() * 4 + 2; // 2-6 seconds
-            
-            if (Math.random() < 0.1) { // 10% chance for fast movement
-                baseDuration = Math.random() * 0.8 + 0.4; // 0.4-1.2 seconds
+
+            let baseDuration = Math.random() * 4 + 2; 
+
+            if (Math.random() < 0.1) { 
+                baseDuration = Math.random() * 0.8 + 0.4; 
             }
-            
+
             const direction = Math.random() > 0.5 ? 1 : -1;
             const currentPos = isHorizontal ? 
                 gsap.getProperty(segment.element, "left") : 
                 gsap.getProperty(segment.element, "top");
-            
+
             let targetPos;
-            const moveDistance = Math.random() * 100 + 50; // 50-150px movement
-            
+            const moveDistance = Math.random() * 100 + 50; 
+
             if (direction > 0) {
                 targetPos = Math.min(currentPos + moveDistance, maxDistance);
             } else {
                 targetPos = Math.max(currentPos - moveDistance, 0);
             }
-            
+
             const property = isHorizontal ? "left" : "top";
-            
+
             gsap.to(segment.element, {
                 [property]: targetPos,
                 duration: baseDuration,
@@ -250,40 +311,40 @@ function animateSegments(segments) {
                     }
                 },
                 onComplete: () => {
-                    // Random delay before next animation
+
                     gsap.delayedCall(Math.random() * 2 + 0.5, createAnimation);
                 }
             });
         }
-        
-        // Set initial text if needed
+
         if (segment.hasText) {
             const property = segment.type === 'horizontal' ? "left" : "top";
             const currentPos = gsap.getProperty(segment.element, property);
             const percentage = Math.round((currentPos / segment.maxDistance) * 100);
             segment.element.textContent = percentage;
         }
-        
-        // Start each segment with random delay
+
         gsap.delayedCall(Math.random() * 3, createAnimation);
     });
 }
 
-function createProfileCard(profile) {
+function createProfileCard(profile, index) {
     const cardContainer = document.createElement('div');
     cardContainer.className = 'card-container';
+    cardContainer.dataset.cardIndex = index;
 
     const card = document.createElement('div');
     card.className = 'profile-card';
+    if (profile.isPlaceholder) {
+        card.classList.add('loading');
+    }
 
-    // Profile image with mask
     const imageContainer = document.createElement('div');
     imageContainer.className = 'profile-image-container';
-    
+
     const image = document.createElement('div');
     image.className = 'profile-image';
-    
-    // Apply mask and background image
+
     image.style.maskImage = 'url(src/mask.png)';
     image.style.webkitMaskImage = 'url(src/mask.png)';
     image.style.maskSize = 'contain';
@@ -292,57 +353,53 @@ function createProfileCard(profile) {
     image.style.webkitMaskRepeat = 'no-repeat';
     image.style.maskPosition = 'center';
     image.style.webkitMaskPosition = 'center';
-    
-    if (profile.image) {
+
+    if (profile.image && !profile.isPlaceholder) {
         image.style.backgroundImage = `url(${profile.image})`;
         image.style.backgroundSize = 'cover';
         image.style.backgroundPosition = 'center';
         image.style.backgroundRepeat = 'no-repeat';
+    } else if (profile.isPlaceholder) {
+
+        image.style.backgroundColor = '#f0f0f0';
     }
-    
-    // Ensure 1:1 aspect ratio
+
     image.style.aspectRatio = '1';
-    image.style.width = '100px'; // Adjust size as needed
+    image.style.width = '100px';
     image.style.height = '100px';
-    
+
     imageContainer.appendChild(image);
     card.appendChild(imageContainer);
 
-    // Profile name
     const name = document.createElement('div');
     name.className = 'profile-name';
     name.textContent = profile.name;
     card.appendChild(name);
 
-    // Profile description (previously title)
     const description = document.createElement('div');
     description.className = 'profile-description';
     description.textContent = profile.description;
     card.appendChild(description);
 
-    // Social links - only render if they exist and are not empty
-    if (profile.socials && Object.keys(profile.socials).length > 0) {
+    if (profile.socials && Object.keys(profile.socials).length > 0 && !profile.isPlaceholder) {
         const socialContainer = document.createElement('div');
         socialContainer.className = 'social-links';
-        
-        // Check each social platform and only add if it has a value
+
         Object.entries(profile.socials).forEach(([platform, url]) => {
             if (url && url.trim() !== '') {
                 const link = document.createElement('a');
                 link.className = `social-link ${platform}`;
                 link.href = url;
-                link.target = '_blank'; // Open in new tab
-                link.rel = 'noopener noreferrer'; // Security best practice
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
                 link.innerHTML = socialIcons[platform] || platform;
                 link.onclick = (e) => {
-                    // Let the default behavior handle the link opening
                     console.log(`Opening ${platform} for ${profile.name}: ${url}`);
                 };
                 socialContainer.appendChild(link);
             }
         });
-        
-        // Only append social container if it has links
+
         if (socialContainer.children.length > 0) {
             card.appendChild(socialContainer);
         }
@@ -350,38 +407,98 @@ function createProfileCard(profile) {
 
     cardContainer.appendChild(card);
 
-    // Create animated borders
     const segments = createCardBorders(cardContainer);
     allSegments.push(...segments);
 
     return cardContainer;
 }
 
-async function init() {
-    // Load profile data first
-    await loadProfileData();
-    
-    // Clear existing content
+function updateProfileCard(index, profile) {
+    const cardContainer = document.querySelector(`[data-card-index="${index}"]`);
+    if (!cardContainer) return;
+
+    const card = cardContainer.querySelector('.profile-card');
+    const image = card.querySelector('.profile-image');
+    const name = card.querySelector('.profile-name');
+    const description = card.querySelector('.profile-description');
+
+    card.classList.remove('loading');
+
+    if (profile.image) {
+        image.style.backgroundImage = `url(${profile.image})`;
+        image.style.backgroundSize = 'cover';
+        image.style.backgroundPosition = 'center';
+        image.style.backgroundRepeat = 'no-repeat';
+        image.style.backgroundColor = '';
+    }
+
+    name.textContent = profile.name;
+    description.textContent = profile.description;
+
+    const existingSocialContainer = card.querySelector('.social-links');
+    if (existingSocialContainer) {
+        existingSocialContainer.remove();
+    }
+
+    if (profile.socials && Object.keys(profile.socials).length > 0) {
+        const socialContainer = document.createElement('div');
+        socialContainer.className = 'social-links';
+
+        Object.entries(profile.socials).forEach(([platform, url]) => {
+            if (url && url.trim() !== '') {
+                const link = document.createElement('a');
+                link.className = `social-link ${platform}`;
+                link.href = url;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                link.innerHTML = socialIcons[platform] || platform;
+                link.onclick = (e) => {
+                    console.log(`Opening ${platform} for ${profile.name}: ${url}`);
+                };
+                socialContainer.appendChild(link);
+            }
+        });
+
+        if (socialContainer.children.length > 0) {
+            card.appendChild(socialContainer);
+        }
+    }
+}
+
+function createInitialCards() {
+
     cardsGrid.innerHTML = '';
     allSegments.length = 0;
-    
-    // Create cards for each profile
-    profileData.forEach(profile => {
-        const cardElement = createProfileCard(profile);
+
+    profileData.forEach((profile, index) => {
+        const cardElement = createProfileCard(profile, index);
         cardsGrid.appendChild(cardElement);
     });
 
-    // Animate all segments
     animateSegments(allSegments);
 }
 
-// Handle window resize
-async function handleResize() {
-    cardsGrid.innerHTML = '';
-    allSegments.length = 0;
-    await init();
+async function init() {
+    if (isInitialized) return;
+
+    await loadProfileData();
 }
 
-// Initialize
+function handleResize() {
+
+    if (window.innerWidth !== handleResize.lastWidth) {
+        handleResize.lastWidth = window.innerWidth;
+
+        if (typeof gsap !== 'undefined') {
+            allSegments.forEach(segment => {
+                gsap.killTweensOf(segment.element);
+            });
+            animateSegments(allSegments);
+        }
+    }
+}
+
+handleResize.lastWidth = window.innerWidth;
+
 window.addEventListener('load', init);
 window.addEventListener('resize', handleResize);
