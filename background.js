@@ -182,7 +182,7 @@ function animateSegments() {
                     if (segment.hasText) {
                         const currentPos = gsap.getProperty(segment.element, property);
                         const percentage = Math.round((currentPos / maxDistance) * 100);
-                        segment.element.textContent = percentage + '%';
+                        segment.element.textContent = percentage ;
                     }
                 },
                 onComplete: () => {
@@ -309,10 +309,9 @@ function init() {
 // Start when page loads
 window.addEventListener('load', init);
 
-// Handle window resize
+
 window.addEventListener('resize', () => {
-    // Kill all animations before clearing
-    gsap.killTweensOf("*");
+    segments.forEach(seg => gsap.killTweensOf(seg.element));
     container.innerHTML = '';
     segments.length = 0;
     init();

@@ -1,4 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Stick+No+Bills:wght@200..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Gruppo&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 
 :root{
     --backgroundBlack : #101010;
@@ -14,6 +16,7 @@ html{
 .fullscreen{
     width: 100dvw;
     height: 100dvh;
+    padding-bottom: 10dvh;
 }
 #lnc{
     position: absolute;
@@ -124,6 +127,7 @@ html{
 }
 
 @media (max-width: 768px) {
+  
   .horizontal-section {
     height: auto;
     overflow: visible;
@@ -165,13 +169,23 @@ html{
 }
 
 
-.title{
-    font-family: "HKGroteskWide", sans-serif;
-    font-weight: 900;
-    color: var(--theRed);
-    font-size: clamp(50px,8vw,150px);
-    line-height: 80%;
+.title {
+  font-family: "HKGroteskWide", sans-serif;
+  font-weight: 900;
+  color: var(--theRed);
+  font-size: clamp(40px, 7vw, 150px);
+  line-height: 80%;
+  padding-left: 5dvw;
+  transform: translateY(1dvh);
+  width: 75dvw;
+}
+
+/* Override on small screens, for example */
+@media (max-width: 768px) {
+  .title {
+    width: 100dvw;
     padding-left: 5dvw;
+  }
 }
 
 #devList{
@@ -291,7 +305,7 @@ html{
     height: 100%;
 }
 
- .border-line.top { top: 0; left: 0; }
+.border-line.top { top: 0; left: 0; }
 .border-line.bottom { bottom: 0; left: 0; }
 .border-line.left { left: 0; top: 0; }
 .border-line.right { right: 0; top: 0; }
@@ -372,4 +386,257 @@ html{
 
 .tdModelFlex{
     position: absolute;
+}
+
+.debug {
+    border: 1px solid var(--theRed);
+    
+}
+.debug::after {
+    content: "DEBUG";
+    position: absolute;
+    left: 10px;
+    background-color: var(--theRed);
+    color: white;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: sans-serif;
+    overflow: visible;
+}
+
+
+.contactList {
+    width: 80dvw;
+    display: flex;
+    flex-direction: column;
+    gap: 10dvh; 
+    padding: 0;
+    margin-left: 10dvw;
+    margin-top: 5dvh;
+}
+
+.contactList > .chipped-shape:nth-child(even) {
+    align-self: flex-end;
+}
+
+.chipped-shape {
+    background: var(--theRed);
+    position: relative;
+    clip-path: polygon(0 0, calc(100% - 30px) 0, 100% 30px, 100% 100%, 0 100%);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    overflow: hidden;
+}
+.small {
+    width: 200px;
+    height: 60px;
+    margin: 20px 0;
+}
+.medium {
+    width: 400px;
+    height: 80px;
+    margin: 20px 0;
+}
+.large {
+    width: 600px;
+    height: 100px;
+    margin: 20px 0;
+}
+.extra-large {
+    width: 800px;
+    height: 120px;
+    margin: 20px 0;
+}
+.chip-top-left {
+    clip-path: polygon(30px 0, 100% 0, 100% 100%, 0 100%, 0 30px);
+}
+.chip-top-right {
+    clip-path: polygon(0 0, calc(100% - 30px) 0, 100% 30px, 100% 100%, 0 100%);
+}
+.chip-bottom-left {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 30px 100%, 0 calc(100% - 30px));
+}
+.chip-bottom-right {
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 30px), calc(100% - 30px) 100%, 0 100%);
+}
+.responsive-shape {
+    width: 60dvw;
+    height: 17.5dvh;
+}
+.small-chip {
+    clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 0 100%);
+}
+.large-chip {
+    clip-path: polygon(0 0, calc(100% - 50px) 0, 100% 50px, 100% 100%, 0 100%);
+}
+.opposite-shape {
+    align-self: flex-end;
+}
+
+@keyframes text-scrolling {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-wrapper {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  height: clamp(75px, 10dvw, 100px);
+}
+
+.animate-text {
+  display: flex;
+  position: absolute;
+  will-change: transform;
+  animation: text-scrolling 20s linear infinite;
+}
+
+.animate-text.left {
+  animation-direction: reverse;
+}
+
+.marqSpan {
+  font-size: clamp(100px, 15dvw, 140px);
+  color: transparent;
+  -webkit-text-stroke: 1px var(--backgroundBlack);
+  text-transform: uppercase;
+  line-height: 0.75;
+  font-weight: 500;
+  font-family: "Widebody", sans-serif;
+  filter: blur(2px);
+  white-space: nowrap;
+  display: inline-block;
+  padding-right: 2rem; /* space between repeats if duplicated */
+}
+
+.content {
+    width: 100%;
+    height: 17.5dvh;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    z-index: 2;
+}
+
+.content > img {
+    height: 60%;
+    width: auto;
+}
+
+.linkTitle {
+    position: relative;
+    font-size: clamp(20px,5dvw,40px);
+    font-family: 'Montserrat', sans-serif;
+    color: var(--backgroundBlack);
+    margin: 0;
+    width: 80%;
+}
+
+.content.rev {
+    justify-content: flex-start;
+    flex-direction: row-reverse;
+}
+
+.content.rev > .linkTitle{
+    text-align: right;
+}
+
+.fragment {
+    position: absolute;
+    background: var(--theRed);
+    pointer-events: none;
+    z-index: 10;
+    will-change: transform, opacity;
+}
+
+  .fragment .fragment-content {
+    position: absolute;
+    overflow: hidden;
+}
+
+  .fragment .animate-text {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+  .fragment .content {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+  .shattered {
+    opacity: 0;
+    pointer-events: none;
+}
+
+  @keyframes shatter {
+    0% {
+        transform: translate(0, 0) rotate(0deg) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--dx), var(--dy)) rotate(var(--rotation)) scale(0.7);
+        opacity: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .contactList > .chipped-shape:nth-child(even) {
+        align-self: flex-start;
+    }
+    
+    .contactList {
+        width: 90dvw;
+        margin-left: 5dvw;
+        gap: 25px;
+    }
+    
+    .small, .medium, .large, .extra-large {
+        width: 100%;
+        max-width: 90dvw;
+        margin: 10px 0;
+    }
+    
+    .responsive-shape {
+        width: 90dvw;
+        height: 10dvh;
+    }
+    .content {
+        height: 10dvh;
+        gap: 10px;             
+    }
+}
+
+
+body.freeze-scroll {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+#gun {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  opacity: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+#divFullSreen{
+    position:absolute;
+    z-index: 10;
+    pointer-events: none;
 }

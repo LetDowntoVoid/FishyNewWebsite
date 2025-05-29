@@ -11,6 +11,10 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/MTLLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-delaunay@6"></script>
+    <!-- OrbitControls (as UMD) -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <link rel="stylesheet" href="fontmanagement.css">
     <link rel="stylesheet" href="style.css">
@@ -35,6 +39,49 @@
     <div class="fullscreen" id="devList">
         <h1 class="title">MEET THE DEVELOPERS</h1>
         <div class="cards-grid" id="cardsGrid"></div>
+    </div>
+
+    <div class="fullscreen" id="contacts">
+      <h1 class="title">OUR CONTACTS</h1>
+      <div class="fullscreen" id="gun">
+      </div>
+      <div class="contactList">
+        <div class="chipped-shape responsive-shape chip-bottom-right target" c_href="https://discord.gg/Fcsdy9KCKJ">
+          <div class="animate-text">
+            <span class="marqSpan">JOIN THE DISCORD&nbsp;</span>
+            <span class="marqSpan">JOIN THE DISCORD&nbsp;</span>
+            <span class="marqSpan">JOIN THE DISCORD&nbsp;</span>
+          </div>
+          <div class="content">
+            <img src="src/socialsImages/Discord.png"/>
+            <h1 class="linkTitle"> Join the <b>OFFICIAL DISCORD</b>  </h1>
+          </div>
+        </div>
+        <div class="chipped-shape responsive-shape chip-bottom-left opposite-shape target" c_href="https://www.roblox.com/communities/5684670/Fishy-Studioz#!/about">
+          <div class="animate-text left">
+            <span class="marqSpan">ROBLOX GROUP&nbsp;</span>
+            <span class="marqSpan">ROBLOX GROUP&nbsp;</span>
+            <span class="marqSpan">ROBLOX GROUP&nbsp;</span>
+          </div>
+          <div class="content rev">
+            <img src="src/socialsImages/Roblox.png"/>
+            <h1 class="linkTitle"> Join the <b>ROBLOX GROUP</b> </h1>
+          </div>
+        </div>
+
+        <div class="chipped-shape responsive-shape chip-bottom-right target" c_href="https://x.com/CharSiewGuy">
+          <div class="animate-text">
+            <span class="marqSpan">FOLLOW ON X&nbsp;</span>
+            <span class="marqSpan">FOLLOW ON X&nbsp;</span>
+            <span class="marqSpan">FOLLOW ON X&nbsp;</span>
+          </div>
+          <div class="content">
+            <img src="src/socialsImages/X.png"/>
+            <h1 class="linkTitle"> Follow us on <b>X</b> </h1>
+          </div>
+        </div>
+        
+      </div>
     </div>
 </body>
 <script src="script.js"></script>

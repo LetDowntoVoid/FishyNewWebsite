@@ -46,3 +46,17 @@
   font-weight: 900;
   font-style: normal;
 }
+
+@font-face {
+  font-family: "Widebody";
+  src: url('fonts/WB/Widebody.otf') format('opentype');
+}
+
+@font-face {
+  font-family: "Widebody";
+  src: url('fonts/WB/Widebody.ttf') format('truetype');
+}
+@font-face {
+  font-family: "Widebody";
+  src: url('fonts/WB/Widebody.woff2');
+}

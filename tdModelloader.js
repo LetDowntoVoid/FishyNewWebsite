@@ -18,11 +18,11 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 horizCont.appendChild(renderer.domElement);
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Increased ambient light
+const ambientLight = new THREE.AmbientLight(0x555555, 0.8); // Increased ambient light
 scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8); // Reduced directional light
-directionalLight.position.set(5, 10, 7.5);
+const directionalLight = new THREE.DirectionalLight(0xb21927, 0.8); // Reduced directional light
+directionalLight.position.set(5, 10, 17.5);
 scene.add(directionalLight);
 
 let model;
@@ -269,3 +269,231 @@ function initHorizontalScroll() {
 }
 
 initHorizontalScroll();
+
+document.querySelectorAll('.animate-text').forEach((el) => {
+  const span = el.querySelector('.marqSpan');
+  const clone = span.cloneNode(true);
+  el.appendChild(clone);
+});
+
+window.addEventListener('resize', () => {
+  document.querySelectorAll('.animate-text').forEach(el => {
+    el.innerHTML = ''; // clear
+    const span = document.createElement('span');
+    span.className = 'marqSpan';
+    span.innerText = 'Your Text'; // or store original somewhere
+    el.appendChild(span);
+    el.appendChild(span.cloneNode(true));
+  });
+});
+
+// Make sure GSAP and d3 and html2canvas are loaded in your page
+
+const targets = document.querySelectorAll('.target');
+const BASE_NUM_POINTS = 15;
+const EXTRA_PARTICLES = 20; // fine shards
+
+targets.forEach(target => {
+  let shattered = false;
+
+  target.addEventListener('click', async () => {
+    if (shattered) return;
+    shattered = true;
+
+    const isMobile = window.innerWidth <= 768;
+    const scaleFactor = isMobile ? 0.6 : 1;
+    const NUM_POINTS = Math.floor(BASE_NUM_POINTS * scaleFactor);
+    const maxAmplitude = 30 * scaleFactor;
+    const maxFrequency = 5;
+
+    target.style.willChange = "transform";
+
+    const vibrationTimeline = gsap.timeline();
+    const steps = 20;
+
+    for (let i = 0; i < steps; i++) {
+      const progress = (i + 1) / steps;
+      const amplitude = maxAmplitude * progress;
+      const freq = 100 + (maxFrequency - 100) * progress;
+      const halfCycleDuration = 1 / (2 * freq);
+
+      vibrationTimeline.to(target, {
+        duration: halfCycleDuration,
+        x: amplitude,
+        ease: "power1.inOut",
+      });
+      vibrationTimeline.to(target, {
+        duration: halfCycleDuration,
+        x: -amplitude,
+        ease: "power1.inOut",
+      });
+    }
+
+    vibrationTimeline.to(target, {
+      duration: 0.02,
+      x: 0,
+      ease: "power1.out"
+    });
+
+    await vibrationTimeline.play();
+
+    const canvas = await html2canvas(target, { scale: 1, backgroundColor: null });
+    const width = canvas.width;
+    const height = canvas.height;
+
+    target.style.opacity = '0';
+
+    const points = Array.from({ length: NUM_POINTS }, () => [
+      Math.random() * width,
+      Math.random() * height
+    ]);
+
+    const delaunay = d3.Delaunay.from(points);
+    const voronoi = delaunay.voronoi([0, 0, width, height]);
+    const parentRect = target.getBoundingClientRect();
+
+    const flash = document.createElement('div');
+    flash.style.position = 'absolute';
+    flash.style.left = `${parentRect.left + window.scrollX}px`;
+    flash.style.top = `${parentRect.top + window.scrollY}px`;
+    flash.style.width = `${width}px`;
+    flash.style.height = `${height}px`;
+    flash.style.pointerEvents = 'none';
+    flash.style.background = 'radial-gradient(circle at center, white 0%, transparent 80%)';
+    flash.style.transformOrigin = 'center';
+    flash.style.transform = 'scaleX(2)';
+    flash.style.opacity = '0.8';
+    flash.style.transition = 'opacity 0.5s ease-out';
+    document.body.appendChild(flash);
+
+    const overlayLink = document.createElement('a');
+    overlayLink.href = target.getAttribute('c_href');
+    overlayLink.target = '_blank';
+    overlayLink.style.position = 'absolute';
+    overlayLink.style.left = `${parentRect.left + window.scrollX}px`;
+    overlayLink.style.top = `${parentRect.top + window.scrollY}px`;
+    overlayLink.style.width = `${parentRect.width}px`;
+    overlayLink.style.height = `${parentRect.height}px`;
+    overlayLink.style.zIndex = '9999';
+    overlayLink.style.cursor = 'pointer';
+    overlayLink.style.display = 'block';
+    overlayLink.style.background = 'transparent';
+    overlayLink.style.pointerEvents = 'auto';
+    overlayLink.style.borderRadius = getComputedStyle(target).borderRadius;
+    document.body.appendChild(overlayLink);
+    
+    setTimeout(() => {
+      flash.style.opacity = '0';
+      setTimeout(() => flash.remove(), 500);
+    }, 100);
+
+    let fragmentsCompleted = 0;
+    const allFrags = [];
+
+    function createFragment(poly, draw = true) {
+      const frag = document.createElement('canvas');
+      frag.width = width;
+      frag.height = height;
+      frag.style.width = `${width}px`;
+      frag.style.height = `${height}px`;
+      frag.style.position = 'absolute';
+      frag.style.left = `${parentRect.left + window.scrollX}px`;
+      frag.style.top = `${parentRect.top + window.scrollY}px`;
+      frag.style.pointerEvents = 'none';
+
+      const ctx = frag.getContext('2d');
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(poly[0][0], poly[0][1]);
+      poly.slice(1).forEach(([x, y]) => ctx.lineTo(x, y));
+      ctx.closePath();
+      ctx.clip();
+
+      if (draw) ctx.drawImage(canvas, 0, 0);
+      ctx.restore();
+
+      document.body.appendChild(frag);
+      return frag;
+    }
+
+    for (let i = 0; i < points.length; i++) {
+      const poly = voronoi.cellPolygon(i);
+      if (!poly) continue;
+
+      const frag = createFragment(poly);
+      allFrags.push(frag);
+
+      const dx = points[i][0] - width / 2;
+      const dy = points[i][1] - height / 2;
+      const angle = Math.atan2(dy, dx);
+
+      gsap.to(frag, {
+        duration: 0.7,
+        x: Math.cos(angle) * 20 * scaleFactor,
+        y: Math.sin(angle) * 20 * scaleFactor,
+        rotation: Math.random() * 10 - 5,
+        ease: "power2.out",
+        onComplete: () => {
+          fragmentsCompleted++;
+          if (fragmentsCompleted === points.length) {
+            const url = target.getAttribute('c_href');
+            if (url) window.open(url, '_blank');
+          }
+
+          gsap.to(frag, {
+            duration: 3 + Math.random() * 2,
+            y: `+=${2 + Math.random() * 3}`,
+            x: `+=${(Math.random() - 0.5) * 2}`,
+            rotation: `+=${(Math.random() - 0.5) * 2}`,
+            ease: "circ.Out",
+            repeat: -1,
+            yoyo: true,
+            repeatRefresh: true
+          });
+        }
+      });
+    }
+
+    // Additional fine particles
+    for (let i = 0; i < EXTRA_PARTICLES; i++) {
+      const frag = document.createElement('div');
+      const size = 3 + Math.random() * 3;
+
+      // Position within target bounds
+      const left = parentRect.left + window.scrollX + Math.random() * width;
+      const top = parentRect.top + window.scrollY + Math.random() * height;
+
+      Object.assign(frag.style, {
+        position: 'absolute',
+        width: `${size}px`,
+        height: `${size}px`,
+        borderRadius: '50%',
+        background: 'white', // high contrast
+        opacity: '1',
+        boxShadow: '0 0 8px rgba(255, 255, 255, 0.8)',
+        left: `${left}px`,
+        top: `${top}px`,
+        pointerEvents: 'none',
+        zIndex: '99999', // above everything else
+      });
+    
+      document.body.appendChild(frag);
+    
+      gsap.to(frag, {
+        delay: Math.random() * 0.2,
+        duration: 1 + Math.random() * 1.5,
+        x: (Math.random() - 0.5) * 100 * scaleFactor,
+        y: (Math.random() - 0.5) * 100 * scaleFactor,
+        scale: 0.4,
+        opacity: 0,
+        ease: "power2.out",
+        onComplete: () => frag.remove()
+      });
+    }
+
+  });
+});
+
+
+
+
