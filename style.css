@@ -640,3 +640,34 @@ body.freeze-scroll {
     z-index: 10;
     pointer-events: none;
 }
+
+#loader {
+    position: fixed;
+    z-index: 100;
+    background-color: #020202;
+    pointer-events: none;
+    display: flex;
+    justify-content: center;
+    align-items: center; /* <-- THIS is what you need */
+    width: 100vw;
+    height: 100vh;
+}
+
+
+#loader > img{
+    position: relative;
+    height: 60dvh;
+    display: inline-block;
+}
+
+#ldvid{
+    position: absolute;
+    height: 60dvh;
+}
+
+@media (max-width:768px) {
+    #ldvid{
+        position: absolute;
+        height: 10dvh;
+    }
+}

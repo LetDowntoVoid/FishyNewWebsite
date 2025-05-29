@@ -13,13 +13,20 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3-delaunay@6"></script>
-    <!-- OrbitControls (as UMD) -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-
     <link rel="stylesheet" href="fontmanagement.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+    <div class="fullscreen" id="loader">
+        <div class="fullscreen" id="loader3D"></div>
+        <video muted playsinline id="ldvid">
+          <source src="src/GIFwork/updatedSpeedTransparent.webm">
+          Your browser does not support the video tag which is crazy in 2025.
+        </video>
+      </div>
+
+
     <div class="fullscreen" id="drop-in">
         <div id="lnc"></div>
         <img src="src/noBslogo.png"/ id="logo">
@@ -84,6 +91,7 @@
       </div>
     </div>
 </body>
+<script src="loader.js"></script>
 <script src="script.js"></script>
 <script src="devlist.js"></script>
 <script src="background.js"></script>
