@@ -7,8 +7,10 @@
     <link rel="stylesheet"  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
     <script src="https://unpkg.com/gsap@3/dist/ScrollTrigger.min.js"></script>
-    <!-- THREE.js Core -->
+    <!-- THREE.js Core - Keep consistent source -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    <!-- All loaders from same source -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/MTLLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -17,7 +19,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
     <div class="fullscreen" id="loader">
         <div class="fullscreen" id="loader3D"></div>
         <video muted playsinline id="ldvid">
@@ -26,7 +27,7 @@
         </video>
       </div>
 
-
+    
     <div class="fullscreen" id="drop-in">
         <div id="lnc"></div>
         <img src="src/noBslogo.png"/ id="logo">
@@ -46,6 +47,10 @@
     <div class="fullscreen" id="devList">
         <h1 class="title">MEET THE DEVELOPERS</h1>
         <div class="cards-grid" id="cardsGrid"></div>
+    </div>
+
+    <div class="fullscreen" id="showcase">
+
     </div>
 
     <div class="fullscreen" id="contacts">
@@ -96,4 +101,5 @@
 <script src="devlist.js"></script>
 <script src="background.js"></script>
 <script src="tdModelloader.js"></script>
+<script src="john.js"></script>
 </html>
