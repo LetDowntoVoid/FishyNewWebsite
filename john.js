@@ -1,4 +1,4 @@
-// Optimized Three.js GLTF and OBJ Loader
+// Simplified Three.js GLTF Loader
 class ThreeJSLoader {
     constructor() {
         this.scene = null;
@@ -9,9 +9,6 @@ class ThreeJSLoader {
         this.animationMixer = null;
         this.clock = null;
         this.controls = null;
-        this.objLoader = null;
-        this.mtlLoader = null;
-        this.placeModel = null;
     }
 
     init() {
@@ -44,10 +41,8 @@ class ThreeJSLoader {
         // Add lighting
         this.setupLighting();
         
-        // Initialize loaders
+        // Initialize loader
         this.loader = new THREE.GLTFLoader();
-        this.mtlLoader = new THREE.MTLLoader();
-        this.objLoader = new THREE.OBJLoader();
         this.clock = new THREE.Clock();
 
         // Initialize controls if available
@@ -95,27 +90,21 @@ class ThreeJSLoader {
 
                 this.model = gltf.scene;
                 this.scene.add(this.model);
+                this.model.scale.setScalar(0.25);
                 
-                // Enable shadows and ensure materials are opaque
+                
+
                 this.model.traverse((child) => {
                     if (child.isMesh) {
                         child.castShadow = true;
                         child.receiveShadow = true;
-                        
-                        // Ensure materials are completely opaque
-                        if (child.material) {
-                            this.setMaterialOpaque(child.material);
-                        }
                     }
                 });
                 
                 // Setup animations if available
                 this.setupAnimations(gltf);
                 
-                // Position model right in front of camera
-                this.positionGLTFModel();
-                
-                console.log('GLTF model loaded, positioned in front of camera, and made opaque');
+                console.log('GLTF model loaded successfully');
             },
             (progress) => {
                 console.log('GLTF Loading progress:', 
@@ -127,20 +116,6 @@ class ThreeJSLoader {
         );
     }
 
-    setMaterialOpaque(material) {
-        if (Array.isArray(material)) {
-            material.forEach((mat) => {
-                mat.transparent = false;
-                mat.opacity = 1.0;
-                mat.needsUpdate = true;
-            });
-        } else {
-            material.transparent = false;
-            material.opacity = 1.0;
-            material.needsUpdate = true;
-        }
-    }
-
     setupAnimations(gltf) {
         if (gltf.animations && gltf.animations.length > 0) {
             this.animationMixer = new THREE.AnimationMixer(this.model);
@@ -150,188 +125,6 @@ class ThreeJSLoader {
                 const action = this.animationMixer.clipAction(clip);
                 action.play();
             });
-        }
-    }
-
-    positionGLTFModel() {
-        if (!this.model) return;
-
-        // Get model bounds
-        const box = new THREE.Box3().setFromObject(this.model);
-        const center = box.getCenter(new THREE.Vector3());
-        const size = box.getSize(new THREE.Vector3());
-        
-        // Center the model
-        this.model.position.sub(center);
-        
-        // Scale model to reasonable size if needed
-        const maxDim = Math.max(size.x, size.y, size.z);
-        if (maxDim > 3) {
-            const scale = 2/ maxDim;
-            this.model.scale.setScalar(scale);
-        }
-        
-        // Position at the same location as betterPlace object
-        // Based on your original positioning logic
-        this.model.position.y += 3.25;
-        this.model.rotation.y += Math.PI / 5;
-        this.model.position.x -= 2.15;
-        this.model.position.z += 2.25;
-        
-        console.log('GLTF model positioned at betterPlace location');
-    }
-
-    loadOBJ(objPath, mtlPath) {
-        console.log('Loading OBJ model:', objPath);
-        console.log('Loading MTL materials:', mtlPath);
-        
-        this.mtlLoader.load(
-            mtlPath,
-            (materials) => {
-                console.log('MTL materials loaded successfully');
-                materials.preload();
-                this.objLoader.setMaterials(materials);
-                this.loadOBJWithMaterials(objPath);
-            },
-            (progress) => {
-                console.log('MTL Loading progress:', 
-                    (progress.loaded / progress.total * 100) + '%');
-            },
-            (error) => {
-                console.error('Error loading MTL:', error);
-                console.log('Attempting to load OBJ without materials...');
-                this.loadOBJFallback(objPath);
-            }
-        );
-    }
-
-    loadOBJWithMaterials(objPath) {
-        this.objLoader.load(
-            objPath,
-            (object) => {
-                console.log('OBJ loaded successfully with materials');
-                this.setupOBJModel(object);
-            },
-            (progress) => {
-                console.log('OBJ Loading progress:', 
-                    (progress.loaded / progress.total * 100) + '%');
-            },
-            (error) => {
-                console.error('Error loading OBJ with materials:', error);
-            }
-        );
-    }
-
-    loadOBJFallback(objPath) {
-        this.objLoader.load(
-            objPath,
-            (object) => {
-                console.log('OBJ loaded without materials');
-                
-                // Apply default materials
-                object.traverse((child) => {
-                    if (child.isMesh && !child.material) {
-                        child.material = new THREE.MeshLambertMaterial({ 
-                            color: 0x888888 
-                        });
-                    }
-                });
-                
-                this.setupOBJModel(object);
-            },
-            (progress) => {
-                console.log('OBJ Loading progress (no MTL):', 
-                    (progress.loaded / progress.total * 100) + '%');
-            },
-            (error) => {
-                console.error('Error loading OBJ (fallback):', error);
-            }
-        );
-    }
-
-    setupOBJModel(object) {
-        // Remove previous place model if exists
-        if (this.placeModel) {
-            this.scene.remove(this.placeModel);
-        }
-        
-        this.placeModel = object;
-        this.scene.add(this.placeModel);
-        
-        // Enable shadows for all meshes
-        this.placeModel.traverse((child) => {
-            if (child.isMesh) {
-                child.castShadow = true;
-                child.receiveShadow = true;
-            }
-        });
-        
-        // Auto-size and position the map model
-        this.autoSizeOBJMap(this.placeModel);
-        
-        console.log('OBJ map model loaded, auto-sized, and positioned');
-    }
-
-    autoSizeOBJMap(mapModel) {
-        const box = new THREE.Box3().setFromObject(mapModel);
-        const size = box.getSize(new THREE.Vector3());
-        const center = box.getCenter(new THREE.Vector3());
-        
-        console.log('Original map size:', size);
-        console.log('Original map center:', center);
-        
-        const maxDim = Math.max(size.x, size.y, size.z);
-        console.log('Max dimension:', maxDim);
-        
-        // Calculate scale factor
-        const targetSize = 300;
-        let scale = targetSize / maxDim;
-        
-        if (maxDim > 10000) {
-            scale = targetSize / maxDim;
-            console.log('Detected very large map, using aggressive scaling');
-        } else if (maxDim < 10) {
-            scale = 5 / maxDim;
-            console.log('Detected small map, scaling up');
-        }
-        
-        console.log('Calculated scale factor:', scale);
-        
-        // Apply scaling and positioning
-        mapModel.scale.setScalar(scale);
-        
-        // Recalculate after scaling
-        const scaledBox = new THREE.Box3().setFromObject(mapModel);
-        const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
-        const scaledSize = scaledBox.getSize(new THREE.Vector3());
-        
-        // Position the model
-        mapModel.position.x = -scaledCenter.x;
-        mapModel.position.z = -scaledCenter.z + 90;
-        mapModel.position.y = -scaledBox.min.y - 287.5;
-        
-        console.log('Final map size after scaling:', scaledSize);
-        console.log('Final map position:', mapModel.position);
-        
-        // Adjust camera for map view
-        this.adjustCameraForMap(scaledSize);
-    }
-
-    adjustCameraForMap(scaledSize) {
-        if (this.camera && this.controls) {
-            const cameraHeight = Math.max(scaledSize.y * 1.5, 10);
-            const cameraDistance = Math.max(scaledSize.x, scaledSize.z) * 0.7;
-            
-            this.camera.position.set(
-                cameraDistance * 0.7, 
-                cameraHeight, 
-                cameraDistance * 0.7
-            );
-            
-            this.controls.target.set(0, -1, 0);
-            this.controls.update();
-            
-            console.log('Camera repositioned for map view');
         }
     }
 
@@ -373,15 +166,11 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Initializing Three.js scene...');
     threeJSLoader.init();
     
-    // Load the GLTF model (now opaque and positioned in front of camera)
+    // Load the GLTF model with default positioning
     threeJSLoader.loadGLTF('src/3DModel/playerBody.glb');
-    
-    // Load the OBJ and MTL files
-    threeJSLoader.loadOBJ('src/3DModel/betterPlace.obj', 'src/3DModel/betterPlace.mtl');
 });
 
 // Export functions for external use
 window.loadGLTF = (path) => threeJSLoader.loadGLTF(path);
-window.loadOBJ = (objPath, mtlPath) => threeJSLoader.loadOBJ(objPath, mtlPath);
 window.initThree = () => threeJSLoader.init();
 window.threeJSLoader = threeJSLoader;
